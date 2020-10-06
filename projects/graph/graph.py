@@ -30,7 +30,11 @@ class Graph:
         """
         Get all neighbors (edges) of a vertex.
         """
-        return self.vertices[vertex_id]
+
+        if len(self.vertices[vertex_id]) > 0:
+            return self.vertices[vertex_id]
+        else:
+            return None
 
     def bft(self, starting_vertex):
         """
@@ -124,9 +128,28 @@ class Graph:
         starting_vertex to destination_vertex in
         depth-first order.
         """
-        pass  # TODO
+        stack = []
 
-    def dfs_recursive(self, starting_vertex, destination_vertex):
+        stack.append([starting_vertex])
+
+        visited = set()
+
+        while len(stack) > 0:
+
+            v = stack.pop()
+            last_element = v[-1]
+
+            if last_element == destination_vertex:
+                return v
+
+            if last_element not in visited:
+                visited.add(last_element)
+                print(last_element)
+
+                for neighor in self.get_neighbors(last_element):
+                    stack.append([*v, neighor])
+
+    def dfs_recursive(self, starting_vertex, destination_vertex, visited=None, path=None):
         """
         Return a list containing a path from
         starting_vertex to destination_vertex in
@@ -134,7 +157,29 @@ class Graph:
 
         This should be done using recursion.
         """
-        pass  # TODO
+
+        if visited is None:
+            visited = set()
+        visited.add(starting_vertex)
+
+        if path is None:
+            path = [starting_vertex]
+
+        for neighbor in self.get_neighbors(starting_vertex):
+
+            if neighbor not in visited:
+
+                new_path = path + [neighbor]
+
+                if neighbor == destination_vertex:
+                    return new_path
+
+                new_node = self.dfs_recursive(
+                    neighbor, destination_vertex, visited, new_path)
+                if new_node is not None:
+                    return new_node
+
+        return None
 
 
 if __name__ == '__main__':
@@ -204,4 +249,5 @@ if __name__ == '__main__':
         [1, 2, 4, 7, 6]
     '''
     print(graph.dfs(1, 6))
+    print('-------')
     print(graph.dfs_recursive(1, 6))
