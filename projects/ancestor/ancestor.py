@@ -9,7 +9,7 @@ def get_ancestors(graph, starting_node):
         if pair[1] == starting_node:
             ancestors.append(pair[0])
 
-    print('ancestors:', ancestors)
+    # print('ancestors:', ancestors)
 
     if len(ancestors) > 0:
         return ancestors
@@ -17,48 +17,45 @@ def get_ancestors(graph, starting_node):
         return None
 
 
-def dfs_recursive_ancestors(ancestors, starting_node, path=None, visited=None, paths=None):
-
+def dfs_recursive_ancestors(ancestors, starting_node, path=None, paths=None):
+    # initialize paths
     if paths is None:
         paths = []
-
-    if visited is None:
-        visited = set()
-    visited.add(starting_node)
-    print('VISITED:', visited)
-
+    # initialize path
     if path is None:
         path = [starting_node]
 
-    print('path:', path)
+    # print('path:', path)
 
+    # get ancestors
     parents = get_ancestors(ancestors, starting_node)
 
+    # if no ancestors then we've arrived at oldest ancestor, append path to paths
     if parents is None:
         paths.append(path)
 
+    # if ancestors exist, traverse that branch
     if parents is not None:
+        # traversing branch for each ancestor in parents
+        for ancestor in parents:
+            # need a new path that includes this ancestor
+            new_path = path + [ancestor]
+            # print('new_path:', new_path)
+            # recursive call to continue traversing branch
+            dfs_recursive_ancestors(
+                ancestors, ancestor, new_path, paths)
 
-        for ancestor in get_ancestors(ancestors, starting_node):
+            # if next_ancestor is not None:
+            #     return next_ancestor
+            # if next_ancestor is None:
+            #     paths.append(new_path)
 
-            if ancestor not in visited:
-                new_path = path + [ancestor]
-                print('new_path:', new_path)
-
-                next_ancestor = dfs_recursive_ancestors(
-                    ancestors, ancestor, new_path, visited, paths)
-
-                if next_ancestor is not None:
-                    return next_ancestor
-                # if next_ancestor is None:
-                #     paths.append(new_path)
-
-    print('DONE', paths)
+    # print('DONE', paths)
     return paths
 
 
 def earliest_ancestor(ancestors, starting_node):
-
+    # generate paths
     paths = dfs_recursive_ancestors(ancestors, starting_node)
 
     print('ENDING paths:', paths)
@@ -87,8 +84,9 @@ def earliest_ancestor(ancestors, starting_node):
             print(result[-1], cur[-1])
             if result[-1] < cur[-1]:
                 cur = result[-1]
-        results = cur
+        results = [cur]
 
+    print('RESULTS:', results)
     oldest_relative = results[-1][-1]
 
     if oldest_relative == starting_node:
