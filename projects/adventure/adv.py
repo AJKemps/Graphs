@@ -12,9 +12,9 @@ world = World()
 
 # You may uncomment the smaller graphs for development and testing purposes.
 # map_file = "maps/test_line.txt"
-map_file = "maps/test_cross.txt"
+# map_file = "maps/test_cross.txt"
 # map_file = "maps/test_loop.txt"
-# map_file = "maps/test_loop_fork.txt"
+map_file = "maps/test_loop_fork.txt"
 # map_file = "maps/main_maze.txt"
 
 # Loads the map into a dictionary
@@ -53,40 +53,94 @@ def bfs(graph):
     q.enqueue([cur_room])
 
     for move in player.current_room.get_exits():
-        moves.enqueue(move)
+        moves.enqueue([move])
 
     local_visited = list()
     path = list()
 
     while moves.size() > 0:
-        move = moves.dequeue()
-        cur_room = player.current_room.id
         print('\nnew loop\n')
+        print("moves:", moves.queue)
+        # pop move off queue
+        move = moves.dequeue()
+        last_move = move[-1]
+        # get room
+        cur_room = player.current_room.id
+        # get directions
+        directions = graph[cur_room]
+        # add room to visited
+        local_visited.append(cur_room)
+
         print('current room:', cur_room)
         print('local visited:', local_visited)
         print('paths:', path)
-        print('moves:', move)
+        print('move:', move)
+        print('directions:', directions)
 
-        # get directions
-        directions = graph[cur_room]
-        # check to see if the current room has any unexplored paths
         for k, v in directions.items():
             if v == '?':
                 # if so, return resulting path
-                cur_room = player.current_room.id
-                local_visited.append(cur_room)
                 print('BINGO', cur_room, 'directions:',
-                      directions, 'local visited:', local_visited)
+                      directions, 'local visited:', local_visited, 'path:', path)
+
+                return path[-1], local_visited[1:]
+
+        rev_path = list()
+        # if no unknown exits, move to next room
+        trial_visited = []
+        for m in move:
+            player.travel(m)
+            reverse_dir = opp_dir(m)
+            rev_path.insert(0, reverse_dir)
+            cur_room = player.current_room.id
+            trial_visited += [cur_room]
+        print('rev path:', rev_path)
+
+        # append move to path
+        path.append([*move])
+        local_visited.append([*trial_visited])
+        # # append room to visited
+
+        # get id of new room
+        new_room = player.current_room.id
+        # get new directions
+        new_directions = graph[new_room]
+        print(new_directions)
+
+        # check to see if the current room has any unexplored paths
+        for k, v in new_directions.items():
+            if v == '?':
+                # if so, return resulting path
+                print('BINGO', new_room, 'new_directions:',
+                      new_directions, 'local visited:', local_visited, 'path:', path)
 
                 return path, local_visited[1:]
 
-        if cur_room not in local_visited:
-            for k, v in directions.items():
-                moves.enqueue(k)
+        # get opposite direction
+        reverse_dir = opp_dir(last_move)
 
-        player.travel(move)
-        path.append(move)
-        local_visited.append(cur_room)
+        count_visits = local_visited.count(new_room)
+        count_exits = len(new_directions)
+
+        if count_visits <= count_exits:
+            for k, v in new_directions.items():
+                if len(new_directions) == 1:
+                    moves.enqueue([*move, k])
+                if len(new_directions) > 1:
+                    if k != reverse_dir:
+                        moves.enqueue([*move, k])
+
+        # go back to where you were
+        for move in rev_path:
+            player.travel(move)
+
+        count = 0
+        for room in graph:
+            for k, v in graph[room].items():
+                if v == '?':
+                    count += 1
+            if count == 0:
+                return path, local_visited[1:]
 
 
 def dfs_paths(room=None, graph=None, path=None, visited=None):
@@ -159,7 +213,7 @@ def dfs_paths(room=None, graph=None, path=None, visited=None):
             new_path, local_visited = call
             path += new_path
             visited += local_visited
-        print("BFS:", bfs(graph))
+        # print("BFS:", bfs(graph))
 
         # return path
 
