@@ -106,19 +106,21 @@ def dfs_paths(room=None, graph=None, path=None, visited=None):
     # add to dictionary
     if graph is None:
         graph = {}
-    graph[room] = dict()
+    if room not in visited:
+        graph[room] = dict()
     print('Graph:', graph)
 
-    # get id and directions for room, add to visited
+    # get id and directions for room
     room = player.current_room.id
     print('Room:', room)
     directions = player.current_room.get_exits()
 
-    # populate possible directions for room
+    # populate possible directions for room if we've not been there before
     if room not in visited:
         for direction in directions:
             graph[room][direction] = '?'
 
+    # add room to visited
     visited.append(room)
 
     # add previous room to current
